@@ -182,6 +182,8 @@
     <div class="input-row"><label>Cp dry biomass</label><input type="number" id="i_cpBM" value="1.50" step="0.05"><span class="unit">kJ/kgK</span></div>
     <div class="input-row"><label>Cp syngas</label><input type="number" id="i_cpSG" value="2.10" step="0.05"><span class="unit">kJ/kgK</span></div>
     <div class="input-row"><label>Pyrolysis ΔH_rxn</label><input type="number" id="i_dH" value="300" step="10"><span class="unit">kJ/kg</span></div>
+    <div class="input-row"><label>Reactor losses (fraction of T1)</label><input type="number" id="i_lossF" value="0.00" step="0.01" min="0" max="0.5" oninput="if(parseFloat(this.value)>0.5)this.value='0.5';if(parseFloat(this.value)<0)this.value='0';"><span class="unit">–</span></div>
+    <div class="note">Radiation + convection loss from reactor body. Applied as T_loss = loss × HHV_in.</div>
   </div>
 
   <div class="section-label">Temperatures</div>
@@ -315,6 +317,7 @@
           <tr><td>T7 — Sensible steam to T_reac</td><td id="e_T7">—</td><td class="u">kW</td></tr>
           <tr><td>T9 — Heat dry biomass to T_reac</td><td id="e_T9">—</td><td class="u">kW</td></tr>
           <tr><td>T10 — Pyrolysis reaction</td><td id="e_T10">—</td><td class="u">kW</td></tr>
+          <tr><td>T_loss — Reactor radiation/convection losses</td><td id="e_Tloss">—</td><td class="u">kW</td></tr>
           <tr><td>T11 — Biochar chemical energy (HHV, ash-free)</td><td id="e_T11">—</td><td class="u">kW</td></tr>
           <tr><td>T12 — Sensible heat biochar out</td><td id="e_T12">—</td><td class="u">kW</td></tr>
           <tr><td>T13 — Syngas sensible (T_reac → T_TO)</td><td id="e_T13">—</td><td class="u">kW</td></tr>
@@ -386,13 +389,17 @@
   <div class="tc" id="tab-flows">
     <div class="two-col">
       <div class="card">
-        <div class="card-header"><span class="dot blue"></span>Mass balance — kg/h</div>
+        <div class="card-header"><span class="dot blue"></span>Mass balance — kg/h
+          <button onclick="exportChartPNG('wf-mass','mass_balance')" style="margin-left:auto;padding:3px 10px;background:var(--bg4);border:1px solid var(--border2);border-radius:3px;color:var(--text2);font-family:var(--mono);font-size:10px;cursor:pointer;">↓ PNG</button>
+        </div>
         <div class="card-body" style="padding:14px 14px 8px;">
           <svg id="wf-mass" width="100%" style="display:block;overflow:visible;"></svg>
         </div>
       </div>
       <div class="card">
-        <div class="card-header"><span class="dot amber"></span>Energy balance — kW</div>
+        <div class="card-header"><span class="dot amber"></span>Energy balance — kW
+          <button onclick="exportChartPNG('wf-energy','energy_balance')" style="margin-left:auto;padding:3px 10px;background:var(--bg4);border:1px solid var(--border2);border-radius:3px;color:var(--text2);font-family:var(--mono);font-size:10px;cursor:pointer;">↓ PNG</button>
+        </div>
         <div class="card-body" style="padding:14px 14px 8px;">
           <svg id="wf-energy" width="100%" style="display:block;overflow:visible;"></svg>
         </div>
@@ -633,7 +640,7 @@ function onInput() { checkComp(); updateAshNote(); run(); }
 // Both rc and Tto must be provided. One of them will have been solved externally.
 function calcAt(inp, rc, Tto) {
   const {fw, mc, xC, xH, xO, xash, xCbc, rHC, HHVbc, xs,
-         HHVbm, cpBM, cpSG, dH, Tr, Treac} = inp;
+         HHVbm, cpBM, cpSG, dH, lossF, Tr, Treac} = inp;
   const rHCm = rHC / 12;
 
   // Air Cp at mean zone temperature (T_ref → T_TO) — computed from Shomate, not user input
@@ -685,7 +692,9 @@ function calcAt(inp, rc, Tto) {
   const merr = Math.abs(tin-tout)/tin*100;
 
   // Energy — T1 uses m_dry * HHV_bm_dry (whole-sample dry basis — ash included in HHV measurement)
-  const T1  = kw(md,   HHVbm);
+  const T1     = kw(md,   HHVbm);
+  // T_loss: reactor radiation/convection loss = fraction of heat input
+  const T_loss = (lossF || 0) * T1;
   const T5  = kw(mw,   Cp_w * (T_COND - Tr));
   const T6  = kw(mw,   Hvap);
   const T7  = kw(mw,   Cp_s * (Treac - T_COND));
@@ -717,7 +726,7 @@ function calcAt(inp, rc, Tto) {
   const W18 = -(T18 + T19);
 
   // T21 = total sinks including exhaust heat terms (mirrors spreadsheet SUM(T5:T19))
-  const T21 = T5+T6+T7+T9+T10+T11+T12+T13+T14+T16+T17+T18+T19;
+  const T21 = T5+T6+T7+T9+T10+T11+T12+T13+T14+T16+T17+T18+T19+T_loss;
   // T23 = closing term — solved to zero (T1 - T21 = 0)
   const T23 = T1 - T21;
   // U1 kept for exhaust recovery tab: U1 = T16+T17+T18+T19 = total exhaust enthalpy
@@ -734,7 +743,7 @@ function calcAt(inp, rc, Tto) {
     merr, tin, tout,
     Cseq: mCbc/mCbm,
     xCO2: mCO2/mexw, xH2O: mH2Ox/mexw, xN2: mN2/mexw, xO2: mO2x/mexw,
-    T1, T5, T6, T7, T9, T10, T11, T12, T13, T14,
+    T1, T5, T6, T7, T9, T10, T11, T12, T13, T14, T_loss,
     T16, T17, T18, T19, T21, T23,
     W19, W16, W17, W18,
     above_adp: W19, acid_zone: -W16, latent: T17,
@@ -771,7 +780,7 @@ function solveTto(inp, rc) {
     const T18_c     = kw(mH2Ox,        Cp_w           * (T_COND - Tr));
     const T19_g     = kw(mexw - mH2Ox, cps.Cp_dry_low * (T_COND - Tr));
     const T16_const = kw(mexw, cps.Cp_wet_adp * (T_ADP - T_COND));
-    const fixed = T5 + T6 + T7 + T9 + T10 + T11 + T12 + T17 + T18_c + T19_g + T16_const;
+    const fixed = T5 + T6 + T7 + T9 + T10 + T11 + T12 + T17 + T18_c + T19_g + T16_const + (inp.lossF||0)*T1;
     const Cp_hi = cps.Cp_wet_hi;
     const num = 3600*(T1 - fixed) + msg*cpSG*Treac + mair*cpAir*Tr + Cp_hi*mexw*T_ADP;
     const den = msg*cpSG + mair*cpAir + Cp_hi*mexw;
@@ -818,7 +827,7 @@ function solveRcForTtoMin(inp, Tto_min) {
     const T18_c     = kw(mH2Ox,        Cp_w           * (T_COND - Tr));
     const T19_g     = kw(mexw - mH2Ox, cps.Cp_dry_low * (T_COND - Tr));
     const T16_const = kw(mexw, cps.Cp_wet_adp * (T_ADP - T_COND));
-    const fixed = T5 + T6 + T7 + T9 + T10 + T11 + T12 + T17 + T18_c + T19_g + T16_const;
+    const fixed = T5 + T6 + T7 + T9 + T10 + T11 + T12 + T17 + T18_c + T19_g + T16_const + (inp.lossF||0)*T1;
     const Cp_hi = cps.Cp_wet_hi;
     const Num = 3600*(T1 - fixed) + msg*cpSG*Treac + mair*cpAir*Tr + Cp_hi*mexw*T_ADP;
     const Den = msg*cpSG + mair*cpAir + Cp_hi*mexw;
@@ -923,7 +932,7 @@ function getInp() {
     xCbc:  g('i_xCbc'),rHC:   g('i_rHC'), HHVbc: g('i_HHVbc'),
     xs:    g('i_xs'),  HHVbm: g('i_HHVbm'),
     cpBM:  g('i_cpBM'),cpSG:  g('i_cpSG'),
-    dH:    g('i_dH'),  Tr:    g('i_Tr'),  Treac: g('i_Treac'), Tto_min: g('i_Tto_min')
+    dH:    g('i_dH'),  lossF: Math.min(0.5, Math.max(0, g('i_lossF') || 0)),  Tr:    g('i_Tr'),  Treac: g('i_Treac'), Tto_min: g('i_Tto_min')
   };
   if (solveMode === 'tto') {
     base.rc  = g('i_rc');
@@ -1090,7 +1099,7 @@ function run() {
   document.getElementById('se').className = r.infeasible ? 'warn' : 'ok';
 
   S('e_T5',r.T5,1); S('e_T6',r.T6,1); S('e_T7',r.T7,1);
-  S('e_T9',r.T9,1); S('e_T10',r.T10,1); S('e_T11',r.T11,1); S('e_T12',r.T12,1);
+  S('e_T9',r.T9,1); S('e_T10',r.T10,1); S('e_Tloss',r.T_loss,1); S('e_T11',r.T11,1); S('e_T12',r.T12,1);
   S('e_T13',r.T13,1); S('e_T14',r.T14,1);
   S('e_T16',r.T16,1); S('e_T17',r.T17,1); S('e_T18',r.T18_water,1); S('e_T19',r.T19_dry,1);
   S('e_T21',r.T21,1); S('e_T23',r.T23,4);
@@ -1341,12 +1350,11 @@ function drawWaterfall(svgId, steps, unit) {
     barsSVG += `<rect x="${x}" y="${y1}" width="${BAR_W}" height="${bh}"
       fill="${col}" rx="2" opacity="0.9"/>`;
 
-    // value label above/below bar
-    const isNeg = b.val < 0;
-    const labelY = isNeg ? y2 + 13 : y1 - 5;
+    // value label — always above the top of the bar
+    const labelY = y1 - 5;
     barsSVG += `<text x="${xCenter(b.i)}" y="${labelY}" text-anchor="middle"
       font-family="IBM Plex Mono,monospace" font-size="10" fill="#9ca89a">
-      ${isNeg ? '−' : b.isTotal ? '' : '+'}${fmtV(Math.abs(b.val))}
+      ${b.val < 0 ? '−' : b.isTotal ? '' : '+'}${fmtV(Math.abs(b.val))}
     </text>`;
 
     // x-axis label (wrapped at ~12 chars)
@@ -1396,13 +1404,63 @@ function updateCharts(r) {
     { label: 'Drying & latent',     val: -(r.T5 + r.T6 + r.T7),     color: '#60a5fa' },
     { label: 'Heat biomass',        val: -(r.T9),                    color: '#a78bfa' },
     { label: 'Pyrolysis rxn',       val: -(r.T10),                   color: '#c084fc' },
+    { label: 'Reactor losses',      val: -(r.T_loss),                color: '#fb923c' },
     { label: 'Heat syngas + air',   val: -(r.T12 + r.T13 + r.T14),  color: '#34d399' },
     { label: 'Non-recoverable',     val: -(r.non_rec),               color: '#f87171' },
     { label: 'Recoverable heat',    val: r.above_adp, color: '#4ade80', total: true },
-  ];
+  ].filter(s => s.val !== 0);
 
   drawWaterfall('wf-mass',   massSteps,   'kg/h');
   drawWaterfall('wf-energy', energySteps, 'kW');
+}
+
+// ── CHART PNG EXPORT ──
+
+function exportChartPNG(svgId, filename) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+
+  const W = svg.getBoundingClientRect().width  || 600;
+  const H = parseFloat(svg.getAttribute('height')) || 300;
+  const SCALE = 2;  // 2x resolution for crisp text
+
+  // Serialise SVG with explicit background rect + font imports
+  const svgClone = svg.cloneNode(true);
+  svgClone.setAttribute('width',  W);
+  svgClone.setAttribute('height', H);
+  svgClone.setAttribute('xmlns',  'http://www.w3.org/2000/svg');
+
+  // Prepend a background rect so PNG has a dark background
+  const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  bg.setAttribute('width',  W);
+  bg.setAttribute('height', H);
+  bg.setAttribute('fill',   '#0d0f0e');
+  svgClone.insertBefore(bg, svgClone.firstChild);
+
+  const serialised = new XMLSerializer().serializeToString(svgClone);
+  const svgBlob    = new Blob([serialised], { type: 'image/svg+xml;charset=utf-8' });
+  const url        = URL.createObjectURL(svgBlob);
+
+  const img = new Image();
+  img.onload = () => {
+    const canvas  = document.createElement('canvas');
+    canvas.width  = W * SCALE;
+    canvas.height = H * SCALE;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(SCALE, SCALE);
+    ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(url);
+
+    const a = document.createElement('a');
+    a.href     = canvas.toDataURL('image/png');
+    a.download = filename + '_' + new Date().toISOString().slice(0,10) + '.png';
+    a.click();
+  };
+  img.onerror = () => {
+    URL.revokeObjectURL(url);
+    alert('PNG export failed — try a different browser.');
+  };
+  img.src = url;
 }
 
 // ── SCENARIO MANAGER ──
@@ -1428,6 +1486,7 @@ function scenarioFields() {
     {k:'xs',           l:'Excess O₂ (mol frac)',        s:'Inputs'},
     {k:'cpBM',         l:'Cp biomass (kJ/kgK)',         s:'Inputs'},
     {k:'cpSG',         l:'Cp syngas (kJ/kgK)',          s:'Inputs'},
+    {k:'lossF',        l:'Reactor loss fraction',        s:'Inputs'},
     {k:'dH',           l:'Pyrolysis ΔH_rxn (kJ/kg)',   s:'Inputs'},
     {k:'Tr',           l:'T_ref (°C)',                  s:'Inputs'},
     {k:'Treac',        l:'T_reactor (°C)',              s:'Inputs'},
@@ -1455,6 +1514,7 @@ function scenarioFields() {
     {k:'r_T7',         l:'T7 — Sens steam to T_reac (kW)',s:'Energy'},
     {k:'r_T9',         l:'T9 — Heat biomass (kW)',      s:'Energy'},
     {k:'r_T10',        l:'T10 — Pyrolysis rxn (kW)',    s:'Energy'},
+    {k:'r_T_loss',     l:'T_loss — Reactor losses (kW)',s:'Energy'},
     {k:'r_T11',        l:'T11 — Biochar HHV (kW)',      s:'Energy'},
     {k:'r_T12',        l:'T12 — Biochar sensible (kW)', s:'Energy'},
     {k:'r_T13',        l:'T13 — Syngas sensible (kW)',  s:'Energy'},
@@ -1488,7 +1548,7 @@ function captureScenario(name) {
   sc.xC = inp.xC; sc.xH = inp.xH; sc.xO = inp.xO;
   sc.HHVbm = inp.HHVbm; sc.rc = r.rc;
   sc.xCbc = inp.xCbc; sc.rHC = inp.rHC; sc.HHVbc = inp.HHVbc;
-  sc.xs = inp.xs; sc.cpBM = inp.cpBM; sc.cpSG = inp.cpSG; sc.dH = inp.dH;
+  sc.xs = inp.xs; sc.cpBM = inp.cpBM; sc.cpSG = inp.cpSG; sc.lossF = inp.lossF || 0; sc.dH = inp.dH;
   sc.Tr = inp.Tr; sc.Treac = inp.Treac; sc.Tto_min = inp.Tto_min;
   sc.solveMode = solveMode;
 
@@ -1499,7 +1559,7 @@ function captureScenario(name) {
   sc.r_mN2=r.mN2; sc.r_mO2x=r.mO2x; sc.r_Cseq=r.Cseq*100;
   sc.r_Tto=r.Tto;
   sc.r_T1=r.T1; sc.r_T5=r.T5; sc.r_T6=r.T6; sc.r_T7=r.T7;
-  sc.r_T9=r.T9; sc.r_T10=r.T10; sc.r_T11=r.T11; sc.r_T12=r.T12;
+  sc.r_T9=r.T9; sc.r_T10=r.T10; sc.r_T_loss=r.T_loss||0; sc.r_T11=r.T11; sc.r_T12=r.T12;
   sc.r_T13=r.T13; sc.r_T14=r.T14; sc.r_T16=r.T16; sc.r_T17=r.T17;
   sc.r_T18=r.T18_water; sc.r_T19=r.T19_dry;
   sc.r_T21=r.T21; sc.r_T23=r.T23; sc.r_Q_supp=r.Q_supp||0;
@@ -1558,7 +1618,7 @@ function loadScenarioIntoModel(name) {
   const map = {
     fw:'i_fw', mc:'i_mc', xash:'i_xash', xC:'i_xC', xH:'i_xH', xO:'i_xO',
     HHVbm:'i_HHVbm', xCbc:'i_xCbc', rHC:'i_rHC', HHVbc:'i_HHVbc',
-    xs:'i_xs', cpBM:'i_cpBM', cpSG:'i_cpSG', dH:'i_dH',
+    xs:'i_xs', cpBM:'i_cpBM', cpSG:'i_cpSG', lossF:'i_lossF', dH:'i_dH',
     Tr:'i_Tr', Treac:'i_Treac', Tto_min:'i_Tto_min'
   };
   Object.entries(map).forEach(([scKey, elId]) => {
