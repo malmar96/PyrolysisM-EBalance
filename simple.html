@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N.V.D. – Not Very Detailed</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: #fdf6e3;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 27px, #e8e0cc 27px, #e8e0cc 28px),
+      repeating-linear-gradient(90deg, transparent, transparent 27px, #e8e0cc 27px, #e8e0cc 28px);
+    font-family: 'Caveat', cursive;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px 60px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    left: 72px; top: 0; bottom: 0;
+    width: 2px;
+    background: rgba(255, 120, 120, 0.4);
+    z-index: 0;
+  }
+
+  .page {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    z-index: 1;
+  }
+
+  .header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .title-block { flex: 1; }
+
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 52px;
+    color: #c0392b;
+    line-height: 1;
+    transform: rotate(-1.5deg);
+    display: inline-block;
+    text-shadow: 3px 3px 0 rgba(192,57,43,0.15);
+  }
+
+  .subtitle {
+    font-size: 18px;
+    color: #7d6b4f;
+    transform: rotate(0.5deg);
+    margin-top: 4px;
+    display: block;
+  }
+
+  .simple-badge {
+    display: inline-block;
+    background: #f39c12;
+    color: white;
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    transform: rotate(3deg);
+    margin-left: 6px;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+  }
+
+  .flame {
+    font-size: 64px;
+    line-height: 1;
+    animation: wobble 2s ease-in-out infinite;
+    transform-origin: bottom center;
+    filter: drop-shadow(0 4px 8px rgba(255,120,0,0.3));
+  }
+  @keyframes wobble {
+    0%,100% { transform: rotate(-5deg) scale(1); }
+    50% { transform: rotate(5deg) scale(1.05); }
+  }
+
+  .back-link {
+    display: inline-block;
+    font-size: 16px;
+    color: #2980b9;
+    text-decoration: underline wavy #2980b9;
+    margin-bottom: 20px;
+    transform: rotate(-0.5deg);
+  }
+
+  .doodle-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 26px;
+    margin: 8px 0 18px;
+    opacity: 0.6;
+  }
+
+  .card {
+    background: #fffef5;
+    border: 3px solid #2c2c2c;
+    border-radius: 4px;
+    padding: 26px 28px 28px;
+    position: relative;
+    box-shadow: 4px 5px 0 #bbb, 8px 9px 0 #ddd;
+    transform: rotate(-0.3deg);
+  }
+
+  .card::before, .card::after {
+    content: '';
+    position: absolute;
+    width: 56px; height: 20px;
+    background: rgba(255,240,100,0.7);
+    border: 1px solid rgba(200,180,0,0.4);
+    border-radius: 2px;
+  }
+  .card::before { top: -9px; left: 36px; transform: rotate(-3deg); }
+  .card::after  { top: -9px; right: 56px; transform: rotate(4deg); }
+
+  .stamp {
+    position: absolute;
+    bottom: 10px; right: 14px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 12px;
+    color: rgba(192,57,43,0.4);
+    border: 2px solid rgba(192,57,43,0.3);
+    border-radius: 4px;
+    padding: 2px 7px;
+    transform: rotate(4deg);
+    letter-spacing: 1px;
+  }
+
+  .section-head {
+    font-family: 'Fredoka One', cursive;
+    font-size: 19px;
+    color: #2c3e50;
+    margin-bottom: 16px;
+    border-bottom: 2.5px solid #2c2c2c;
+    padding-bottom: 5px;
+    transform: rotate(0.3deg);
+  }
+
+  .input-group { margin-bottom: 20px; }
+
+  .input-label {
+    display: block;
+    font-size: 20px;
+    color: #2c2c2c;
+    margin-bottom: 6px;
+    transform: rotate(-0.3deg);
+  }
+
+  input[type="number"], select {
+    width: 100%;
+    padding: 10px 14px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 22px;
+    color: #1a237e;
+    background: #e8f4fd;
+    border: 3px solid #2c2c2c;
+    border-radius: 6px;
+    outline: none;
+    box-shadow: 3px 3px 0 #2c2c2c;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  input[type="number"]:focus { background: #d6eaf8; }
+  select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='10'><path d='M0 0l8 10 8-10z' fill='%232c2c2c'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-color: #e8f4fd;
+    padding-right: 40px;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  input[type="range"] {
+    flex: 1;
+    height: 8px;
+    -webkit-appearance: none;
+    background: linear-gradient(to right, #3498db var(--pct,13%), #ddd var(--pct,13%));
+    border-radius: 4px;
+    border: 2px solid #2c2c2c;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #e74c3c;
+    border: 3px solid #2c2c2c;
+    box-shadow: 2px 2px 0 #2c2c2c;
+    cursor: pointer;
+  }
+  .slider-val {
+    font-family: 'Fredoka One', cursive;
+    font-size: 22px;
+    color: #1a237e;
+    min-width: 44px;
+    text-align: right;
+  }
+
+  .calc-btn {
+    width: 100%;
+    padding: 14px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 24px;
+    color: white;
+    background: #27ae60;
+    border: 3px solid #1e8449;
+    border-radius: 8px;
+    box-shadow: 4px 4px 0 #1e8449, 6px 6px 0 rgba(0,0,0,0.12);
+    cursor: pointer;
+    transform: rotate(0.4deg);
+    transition: transform 0.1s, box-shadow 0.1s;
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+  }
+  .calc-btn:hover { background: #229954; }
+  .calc-btn:active {
+    transform: rotate(0.4deg) translate(3px,3px);
+    box-shadow: 1px 1px 0 #1e8449;
+  }
+
+  .result-card {
+    margin-top: 24px;
+    background: #fef9e7;
+    border: 3px solid #2c2c2c;
+    border-radius: 6px;
+    padding: 22px 26px;
+    box-shadow: 4px 5px 0 #bbb;
+    transform: rotate(0.5deg);
+    position: relative;
+    display: none;
+  }
+  .result-card.visible { display: block; }
+
+  .star {
+    position: absolute;
+    top: -20px; right: 18px;
+    font-size: 38px;
+    animation: spin-slow 4s linear infinite;
+    filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.2));
+  }
+  @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .result-label {
+    font-family: 'Fredoka One', cursive;
+    font-size: 17px;
+    color: #7d6b4f;
+    margin-bottom: 4px;
+    transform: rotate(-0.5deg);
+    display: block;
+  }
+
+  .result-number {
+    font-family: 'Fredoka One', cursive;
+    font-size: 72px;
+    color: #c0392b;
+    line-height: 1;
+    text-shadow: 3px 3px 0 rgba(192,57,43,0.18);
+    display: inline-block;
+    animation: pop-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes pop-in {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+
+  .result-unit {
+    font-family: 'Fredoka One', cursive;
+    font-size: 26px;
+    color: #7d6b4f;
+    margin-left: 6px;
+  }
+
+  .result-sub {
+    font-size: 17px;
+    color: #7d6b4f;
+    margin-top: 10px;
+    border-top: 2px dashed #c8b99a;
+    padding-top: 10px;
+    display: block;
+    line-height: 1.6;
+  }
+
+  .footer-note {
+    margin-top: 24px;
+    font-size: 15px;
+    color: #999;
+    text-align: center;
+    transform: rotate(0.3deg);
+    line-height: 1.8;
+  }
+  .footer-note a { color: #2980b9; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="title-block">
+      <a class="back-link" href="index.html">back to the real thing</a>
+      <br>
+      <h1>N.V.D.</h1>
+      <span class="subtitle">Not Very Detailed <span class="simple-badge">by H.O.T. M.E.S.S.</span></span>
+    </div>
+    <div class="flame">🔥</div>
+  </div>
+
+  <div class="doodle-row">
+    <span>💨</span><span>♨️</span><span>🌿</span><span>♨️</span><span>💨</span>
+  </div>
+
+  <div class="card">
+    <div class="stamp">ESTIMATE ONLY</div>
+
+    <div class="section-head">What are you putting in?</div>
+
+    <div class="input-group">
+      <label class="input-label">What kind of biomass? 🌿</label>
+      <select id="feedstock">
+        <option value="hardwood">Hardwood 🪵</option>
+        <option value="softwood">Softwood 🌲</option>
+        <option value="rice_hulls">Rice hulls 🌾</option>
+        <option value="act_sludge">Activated sludge 💩</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">How much per hour? ⚖️</label>
+      <input type="number" id="feedrate" value="1000" min="1" max="100000" step="100">
+      <span style="font-size:15px;color:#999;margin-left:4px;">kg/h</span>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">
+        How wet is it? 💧
+        <span id="mc-display" style="color:#e74c3c;font-family:'Fredoka One',cursive;">13%</span>
+      </label>
+      <div class="slider-row">
+        <span style="font-size:22px;">🏜️</span>
+        <input type="range" id="moisture" min="0" max="60" value="13" step="1">
+        <span style="font-size:22px;">🌊</span>
+        <span class="slider-val" id="mc-val">13%</span>
+      </div>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">
+      Calculate the Heat!!! 🔥🔥🔥
+    </button>
+  </div>
+
+  <div class="result-card" id="result-card">
+    <span class="star">⭐</span>
+    <span class="result-label">Net heat you can actually use:</span>
+    <div>
+      <span class="result-number" id="result-number">—</span>
+      <span class="result-unit">kW</span>
+    </div>
+    <span class="result-sub" id="result-sub"></span>
+  </div>
+
+  <p class="footer-note">
+    want all the nerdy details?
+    <a href="index.html">open H.O.T. M.E.S.S. →</a>
+    <br>
+    <span style="font-size:13px;color:#bbb;">results are estimates. see Methods tab for assumptions.</span>
+  </p>
+
+</div>
+
+<script>
+const FEEDSTOCKS = {
+  hardwood:   { xC:0.492,  xH:0.062,  xO:0.446,  xash:0.003, HHVbm:19000 },
+  softwood:   { xC:0.512,  xH:0.063,  xO:0.425,  xash:0.002, HHVbm:20000 },
+  rice_hulls: { xC:0.4855, xH:0.0631, xO:0.4515, xash:0.192, HHVbm:15000 },
+  act_sludge: { xC:0.5655, xH:0.0844, xO:0.3501, xash:0.380, HHVbm:13500 },
+};
+
+const DEFAULTS = {
+  rc:0.25, xCbc:0.70, rHC:0.70, HHVbc:30103.88,
+  xs:0.05, cpBM:1.5, cpSG:2.1, dH:300,
+  Tr:25, Treac:500, Tto_min:650, lossF:0.00, hxEff:0.90,
+};
+
+const N_AIR=79/21, Cp_w=4.2, Cp_s=2.0, Hvap=2257, T_ADP=150, T_COND=100;
+const kw=(m,q)=>m*q/3600;
+
+function _Cp_mol(t,A,B,C,D,E){return A+B*t+C*t*t+D*t*t*t+E/(t*t);}
+function Cp_N2(T){const t=(T+273.15)/1000;return _Cp_mol(t,26.092,8.2188,-1.9761,0.15927,-0.044267)/28.014;}
+function Cp_CO2(T){const t=(T+273.15)/1000;return _Cp_mol(t,24.997,55.187,-33.691,7.9484,-0.13664)/44.01;}
+function Cp_H2Og(T){const t=(T+273.15)/1000;return _Cp_mol(t,30.092,6.8325,6.7934,-2.5345,0.082139)/18.015;}
+function Cp_O2(T){const t=(T+273.15)/1000;return (T+273.15)<700?_Cp_mol(t,31.322,-20.235,57.866,-36.506,-0.007374)/31.999:_Cp_mol(t,30.032,8.773,-3.9881,0.7883,-0.7416)/31.999;}
+function Cp_air(T){return 0.232*Cp_O2(T)+0.768*Cp_N2(T);}
+function exCps(xCO2,xH2O,xN2,xO2,Tto,Tr){
+  const xd=1-xH2O,xCO2d=xCO2/xd,xN2d=xN2/xd,xO2d=xO2/xd;
+  const wet=T=>xCO2*Cp_CO2(T)+xH2O*Cp_H2Og(T)+xN2*Cp_N2(T)+xO2*Cp_O2(T);
+  const dry=T=>xCO2d*Cp_CO2(T)+xN2d*Cp_N2(T)+xO2d*Cp_O2(T);
+  return{hi:wet((Tto+T_ADP)/2),adp:wet((T_ADP+T_COND)/2),low:dry((T_COND+Tr)/2)};
+}
+
+function calcAt(inp,rc,Tto){
+  const{fw,mc,xC,xH,xO,xash,xCbc,rHC,HHVbc,xs,HHVbm,cpBM,cpSG,dH,lossF,hxEff,Tr,Treac}=inp;
+  const rHCm=rHC/12,md=fw*(1-mc),mw=fw*mc;
+  const x_a=xash>0.01?xash:0,m_a=md*x_a,m_org=md*(1-x_a);
+  const mbc_org=m_org*rc,mbc=mbc_org+m_a;
+  const mCbc=mbc_org*xCbc,mHbc=mCbc*rHCm,mObc=mbc_org-mCbc-mHbc;
+  const msg=m_org-mbc_org;
+  const mCsg=m_org*xC-mCbc,mHsg=m_org*xH-mHbc,mOsg=m_org*xO-mObc;
+  const mCO2=(44/12)*mCsg,MCO2=mCO2/44,mH2Oc=(36/4)*mHsg;
+  const mO2g=(32/44)*mCO2+(16/18)*mH2Oc,mO2n=mO2g-mOsg,MO2n=mO2n/32;
+  const Mdry=(N_AIR*MO2n+MCO2)/(1-(N_AIR+1)*xs);
+  const MO2x=xs*Mdry,MO2tot=MO2x+MO2n,MN2=(0.79/0.21)*MO2tot;
+  const mN2=MN2*28,mair=mN2+MO2tot*32,mH2Ox=mH2Oc+mw,mexw=mN2+MO2x*32+mCO2+mH2Ox;
+  const xCO2_e=mCO2/mexw,xH2O_e=mH2Ox/mexw,xN2_e=mN2/mexw,xO2_e=MO2x*32/mexw;
+  const cpA=Cp_air((Tr+Tto)/2);
+  const cps=exCps(xCO2_e,xH2O_e,xN2_e,xO2_e,Tto,Tr);
+  const T1=kw(md,HHVbm),Tl=(lossF||0)*T1;
+  const T18=kw(mH2Ox,Cp_w*(T_COND-Tr)),T19=kw(mexw-mH2Ox,cps.low*(T_COND-Tr));
+  const T16c=kw(mexw,cps.adp*(T_ADP-T_COND));
+  const T5=kw(mw,Cp_w*(T_COND-Tr)),T6=kw(mw,Hvap),T7=kw(mw,Cp_s*(Treac-T_COND));
+  const T9=kw(md,cpBM*(Treac-Tr)),T10=kw(md,dH),T11=kw(mbc_org,HHVbc);
+  const T12=kw(mbc,1.0*(Treac-Tr));
+  const fixed=T5+T6+T7+T9+T10+T11+T12+kw(mH2Ox,Hvap)+T18+T19+T16c+Tl;
+  const W19=kw(mexw,cps.hi*(Tto-T_ADP));
+  return{T1,W19,net_rec:W19*(hxEff||0.9),mbc,
+         T5,T6,T7,T9,T10,T11,T12,
+         T13:kw(msg,cpSG*(Tto-Treac)),T14:kw(mair,cpA*(Tto-Tr)),
+         msg,mair,mexw,mH2Ox,xCO2:xCO2_e,xH2O:xH2O_e,xN2:xN2_e,xO2:xO2_e};
+}
+
+function solveTto(inp,rc){
+  const{cpSG,Tr,Treac}=inp;
+  const r0=calcAt(inp,rc,700);
+  const{msg,mair,mexw,mH2Ox,T1,T5,T6,T7,T9,T10,T11,T12,xCO2,xH2O,xN2,xO2}=r0;
+  function pass(Tg){
+    const cps=exCps(xCO2,xH2O,xN2,xO2,Tg,Tr);
+    const cpA=Cp_air((Tr+Tg)/2);
+    const T18c=kw(mH2Ox,Cp_w*(T_COND-Tr)),T19g=kw(mexw-mH2Ox,cps.low*(T_COND-Tr));
+    const T16c=kw(mexw,cps.adp*(T_ADP-T_COND));
+    const Tl=(inp.lossF||0)*T1;
+    const fixed=T5+T6+T7+T9+T10+T11+T12+kw(mH2Ox,Hvap)+T18c+T19g+T16c+Tl;
+    const Cp_hi=cps.hi;
+    const num=3600*(T1-fixed)+msg*cpSG*Treac+mair*cpA*Tr+Cp_hi*mexw*T_ADP;
+    const den=msg*cpSG+mair*cpA+Cp_hi*mexw;
+    return num/den;
+  }
+  let Tto=700;
+  for(let i=0;i<5;i++) Tto=pass(Tto);
+  return Tto;
+}
+
+// Slider
+const slider=document.getElementById('moisture');
+slider.addEventListener('input',()=>{
+  const pct=slider.value;
+  document.getElementById('mc-display').textContent=pct+'%';
+  document.getElementById('mc-val').textContent=pct+'%';
+  slider.style.setProperty('--pct',pct+'%');
+});
+
+function calculate(){
+  const key=document.getElementById('feedstock').value;
+  const fw=parseFloat(document.getElementById('feedrate').value)||1000;
+  const mc=parseFloat(slider.value)/100;
+  const f=FEEDSTOCKS[key];
+  const inp={fw,mc,xC:f.xC,xH:f.xH,xO:f.xO,xash:f.xash,HHVbm:f.HHVbm,...DEFAULTS};
+  const Tto=solveTto(inp,DEFAULTS.rc);
+  const feasible=Tto>=650;
+  const r=calcAt(inp,DEFAULTS.rc,feasible?Tto:650);
+  const fmt=v=>Math.round(v).toLocaleString('en-US');
+  const card=document.getElementById('result-card');
+  const num=document.getElementById('result-number');
+  const sub=document.getElementById('result-sub');
+  card.classList.add('visible');
+  num.style.animation='none';
+  setTimeout(()=>num.style.animation='pop-in 0.3s cubic-bezier(0.34,1.56,0.64,1)',10);
+  num.textContent=fmt(r.net_rec);
+  const emoji=r.net_rec>500?'🎉':r.net_rec>100?'👍':'🤏';
+  const warn=!feasible?`<br>⚠️ <strong>heads up!</strong> the T_TO is below the combustion floor at ${(mc*100).toFixed(0)}% moisture — supplemental heat needed!`:'';
+  sub.innerHTML=`${emoji} <strong>${fmt(r.W19)} kW</strong> recoverable from the exhaust,<br>minus 10% heat exchanger losses = <strong>${fmt(r.net_rec)} kW</strong> delivered.${warn}<br><span style="font-size:15px;color:#aaa;">T_TO=${Math.round(Tto)}°C &nbsp;|&nbsp; biochar: ${fmt(r.mbc)} kg/h &nbsp;|&nbsp; air: ${fmt(r.mair)} kg/h</span>`;
+}
+</script>
+</body>
+</html>
